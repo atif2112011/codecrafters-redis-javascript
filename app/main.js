@@ -22,11 +22,20 @@ const server = net.createServer((connection) => {
       const value = commands[6];
       db[key] = value;
 
+      if (commands[8] == "px")
+        setTimeout(() => {
+          delete db[key];
+        }, commands[10]);
+
       return connection.write("+OK\r\n");
     } else if (commands[2] == "GET") {
       const answer = db[commands[4]];
-      const l = answer.length;
-      return connection.write("$" + l + "\r\n" + answer + "\r\n");
+      if (answer) {
+        const l = answer.length;
+        return connection.write("$" + l + "\r\n" + answer + "\r\n");
+      } else {
+        return connection.write("$-1\r\n");
+      }
     }
 
     connection.write("+PONG\r\n");
