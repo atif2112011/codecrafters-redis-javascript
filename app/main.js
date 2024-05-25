@@ -1,5 +1,5 @@
 const net = require("net");
-
+const PORT = process.argv[2] === "--port" ? process.argv[3] : 6379;
 const db = {};
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -42,4 +42,4 @@ const server = net.createServer((connection) => {
   });
 });
 
-server.listen(6379, "127.0.0.1");
+server.listen(PORT, "127.0.0.1");
