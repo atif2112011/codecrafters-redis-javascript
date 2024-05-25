@@ -23,6 +23,10 @@ const server = net.createServer((connection) => {
       db[key] = value;
 
       return connection.write("+OK\r\n");
+    } else if (commands[2] == "GET") {
+      const answer = db[commands[4]];
+      const l = answer.length;
+      return connection.write("$" + l + "\r\n" + answer + "\r\n");
     }
 
     connection.write("+PONG\r\n");
