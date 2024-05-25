@@ -10,6 +10,7 @@ const server = net.createServer((connection) => {
   connection.on("data", (data) => {
     const commands = Buffer.from(data).toString().split("\r\n");
     // *2\r\n $5 \r\n ECHO \r\n $3 \r\n hey \r\n
+    console.log(`Command:`, commands);
 
     if (commands[2] == "ECHO") {
       const str = commands[4];
