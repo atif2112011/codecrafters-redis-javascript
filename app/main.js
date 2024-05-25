@@ -15,6 +15,8 @@ const server = net.createServer((connection) => {
       const str = commands[4];
       const l = str.length;
       connection.write("$" + l + "\r\n" + str + "\r\n");
+    } else if (commands[1] == "PING") {
+      connection.write("+PONG\r\n");
     }
   });
 });
