@@ -1,5 +1,6 @@
 const net = require("net");
 
+const db = {};
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
 
@@ -16,6 +17,12 @@ const server = net.createServer((connection) => {
       const str = commands[4];
       const l = str.length;
       return connection.write("$" + l + "\r\n" + str + "\r\n");
+    } else if (commands[2] == "SET") {
+      const key = commands[4];
+      const value = commands[6];
+      db[key] = value;
+
+      return connection.write("+OK\r\n");
     }
 
     connection.write("+PONG\r\n");
