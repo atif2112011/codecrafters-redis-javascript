@@ -17,7 +17,7 @@ const handleHandshake = (host, port) => {
 
       if (commands[0] == "+PONG") {
         hsclient.write(
-          `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${port}\r\n`
+          `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${PORT}\r\n`
         );
         hsclient.write(
           `*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n`
