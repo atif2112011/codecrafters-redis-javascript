@@ -53,8 +53,10 @@ const server = net.createServer((connection) => {
           (key.length + server_info[key].length + 1) +
           `\r\n${key}:${server_info[key]}\r\n`;
       }
-
-      return connection.write(`*${server_info.size}\r\n` + response);
+      console.log(`Response`, response);
+      return connection.write(
+        `*${Object.keys(server_info).length}\r\n` + response
+      );
     }
 
     connection.write("+PONG\r\n");
