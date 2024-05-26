@@ -76,7 +76,7 @@ const handleHandshake = (host, port) => {
               }\r\n${bytecount}\r\n`
             );
 
-            bytecount += query.length;
+            bytecount += query.length + 3;
           }
         }
       }
