@@ -7,6 +7,8 @@ let server_info = {
   master_repl_offset: "0",
 };
 
+const replicaList = [];
+
 let empty_rdb =
   "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
 
@@ -34,6 +36,14 @@ const handleHandshake = (host, port) => {
       }
     });
   });
+};
+
+const propagateToReplicas = (command) => {
+  if (server_info.role != "master" || replicaList.length == 0) return;
+
+  for (const replicaCon of replicaList) {
+    replicaCon.write(command);
+  }
 };
 if (process.argv[4] == "--replicaof") {
   server_info.role = "slave";
@@ -74,7 +84,8 @@ const server = net.createServer((connection) => {
           delete db[key];
         }, commands[10]);
 
-      return connection.write("+OK\r\n");
+      connection.write("+OK\r\n");
+      propagateToReplicas(data);
     } else if (commands[2] == "GET") {
       const answer = db[commands[4]];
       if (answer) {
@@ -110,6 +121,7 @@ const server = net.createServer((connection) => {
         ]);
         console.log(res);
         connection.write(res);
+        replicaList.push(connection);
       }
     }
   });
