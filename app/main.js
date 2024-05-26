@@ -55,7 +55,7 @@ const server = net.createServer((connection) => {
     const commands = Buffer.from(data).toString().split("\r\n");
     // *2\r\n $5 \r\n ECHO \r\n $3 \r\n hey \r\n
     console.log(`Command:`, commands);
-    if (commands[0] == "+PING") {
+    if (commands.includes("PING")) {
       return connection.write("+PONG\r\n");
     } else if (commands[2] == "ECHO") {
       const str = commands[4];
