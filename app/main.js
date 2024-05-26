@@ -12,6 +12,8 @@ const handleHandshake = (host, port) => {
     console.log("connected to master", "Host: ", host, "Port: ", port);
     hsclient.write("*1\r\n$4\r\nPING\r\n");
 
+    let repl1 = false;
+
     hsclient.on("data", (data) => {
       const commands = Buffer.from(data).toString().split("\r\n");
 
@@ -19,11 +21,13 @@ const handleHandshake = (host, port) => {
         hsclient.write(
           `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${PORT}\r\n`
         );
-        hsclient.write(
-          `*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n`
-        );
       } else if (commands[0] == "+OK") {
-        hsclient.write(`*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n`);
+        if ((repl1 = false)) {
+          hsclient.write(
+            `*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n`
+          );
+          repl1 = true;
+        } else hsclient.write(`*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n`);
       }
     });
   });
@@ -51,8 +55,9 @@ const server = net.createServer((connection) => {
     const commands = Buffer.from(data).toString().split("\r\n");
     // *2\r\n $5 \r\n ECHO \r\n $3 \r\n hey \r\n
     console.log(`Command:`, commands);
-
-    if (commands[2] == "ECHO") {
+    if (commands[0] == "+PING") {
+      return connection.write("+PONG\r\n");
+    } else if (commands[2] == "ECHO") {
       const str = commands[4];
       const l = str.length;
       return connection.write("$" + l + "\r\n" + str + "\r\n");
@@ -84,9 +89,13 @@ const server = net.createServer((connection) => {
       return connection.write(
         `$` + `${response.length}\r\n` + response + `\r\n`
       );
+    } else if (commands[2] == "REPLCONF") {
+      if (commands.includes("listening-port")) {
+        return connection.write(`+OK\r\n`);
+      } else {
+        return connection.write(`+OK\r\n`);
+      }
     }
-
-    connection.write("+PONG\r\n");
   });
 });
 
