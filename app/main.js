@@ -42,6 +42,14 @@ const handleHandshake = (host, port) => {
           setTimeout(() => {
             delete db[key];
           }, commands[10]);
+      } else if (commands[2] == "GET") {
+        const answer = db[commands[4]];
+        if (answer) {
+          const l = answer.length;
+          return connection.write("$" + l + "\r\n" + answer + "\r\n");
+        } else {
+          return connection.write("$-1\r\n");
+        }
       }
     });
   });
