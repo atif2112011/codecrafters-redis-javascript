@@ -77,6 +77,7 @@ const handleHandshake = (host, port) => {
             );
 
             bytecount += query.length + 3;
+            //+3 because when query is partitioned then if forms the query as "*3 replconf getack" instead of "*3 replconf getack *"
           }
         }
       }
@@ -169,6 +170,8 @@ const server = net.createServer((connection) => {
         connection.write(res);
         replicaList.push(connection);
       }
+    } else if (commands[2] == "WAIT") {
+      return connection.write("+0\r\n");
     }
   });
 });
