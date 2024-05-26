@@ -7,6 +7,12 @@ let server_info = {
   master_repl_offset: "0",
 };
 
+const handleHandshake = (host, port) => {
+  const hsclient = net.createConnection({ host: host, port: port }, () => {
+    console.log("connected to master", "host", host, "port", port);
+    hsclient.write("*1\r\n$4\r\nPING\r\n");
+  });
+};
 if (process.argv[4] == "--replicaof") {
   server_info.role = "slave";
   let replicaofArray = process.argv[5].split(" ");
@@ -18,12 +24,6 @@ if (process.argv[4] == "--replicaof") {
   }
 }
 
-const handleHandshake = (host, port) => {
-  const hsclient = net.createConnection({ host: host, port: port }, () => {
-    console.log("connected to master", "host", host, "port", port);
-    hsclient.write("*1\r\n$4\r\nPING\r\n");
-  });
-};
 const db = {};
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
