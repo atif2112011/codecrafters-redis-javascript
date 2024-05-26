@@ -46,9 +46,9 @@ const handleHandshake = (host, port) => {
         const answer = db[commands[4]];
         if (answer) {
           const l = answer.length;
-          return connection.write("$" + l + "\r\n" + answer + "\r\n");
+          connection.write("$" + l + "\r\n" + answer + "\r\n");
         } else {
-          return connection.write("$-1\r\n");
+          connection.write("$-1\r\n");
         }
       }
     });
