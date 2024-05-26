@@ -33,6 +33,7 @@ const handleHandshake = (host, port) => {
           query = queries.substring(0, index);
           queries = queries.substring(index);
         }
+        console.log(`Query formed:`, query);
 
         commands = Buffer.from(query).toString().split("\r\n");
 
