@@ -42,7 +42,7 @@ const server = net.createServer((connection) => {
         return connection.write("$-1\r\n");
       }
     } else if (commands[2] == "INFO") {
-      return connection.write(`$11\r\nrole:${mode}\r\n`);
+      return connection.write(`$` + mode.length + `\r\nrole:${mode}\r\n`);
     }
 
     connection.write("+PONG\r\n");
