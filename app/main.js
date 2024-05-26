@@ -171,7 +171,7 @@ const server = net.createServer((connection) => {
         replicaList.push(connection);
       }
     } else if (commands[2] == "WAIT") {
-      return connection.write(":0\r\n");
+      return connection.write(`:${replicaList.length}\r\n`);
     }
   });
 });
