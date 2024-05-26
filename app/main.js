@@ -8,7 +8,7 @@ let server_info = {
 };
 
 let empty_rdb =
-  "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2";
+  "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
 
 const handleHandshake = (host, port) => {
   const hsclient = net.createConnection({ host: host, port: port }, () => {
@@ -102,7 +102,14 @@ const server = net.createServer((connection) => {
       if (commands[4] == "?" && commands[6] == "-1") {
         connection.write(`+FULLRESYNC ${server_info.master_replid} 0\r\n`);
 
-        connection.write(`$` + `${empty_rdb.length}\r\n${empty_rdb}`);
+        //Empty RBD send to replica
+        const bufferRDB = Buffer.from(empty_rdb, "base64");
+        const res = Buffer.concat([
+          Buffer.from(`$${bufferRDB.length}\r\n`),
+          bufferRDB,
+        ]);
+        console.log(res);
+        connection.write(res);
       }
     }
   });
