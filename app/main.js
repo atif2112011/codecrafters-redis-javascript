@@ -1,5 +1,10 @@
 const net = require("net");
 const PORT = process.argv[2] === "--port" ? process.argv[3] : 6379;
+let mode = "master";
+
+if (process.argv[3] == "--replicaof") {
+  mode = "slave";
+}
 const db = {};
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -37,7 +42,7 @@ const server = net.createServer((connection) => {
         return connection.write("$-1\r\n");
       }
     } else if (commands[2] == "INFO") {
-      return connection.write("$11\r\nrole:master\r\n");
+      return connection.write(`$11\r\nrole:${mode}\r\n`);
     }
 
     connection.write("+PONG\r\n");
