@@ -33,6 +33,15 @@ const handleHandshake = (host, port) => {
           );
           repl1 = true;
         } else hsclient.write(`*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n`);
+      } else if (commands[2] == "SET") {
+        const key = commands[4];
+        const value = commands[6];
+        db[key] = value;
+
+        if (commands[8] == "px")
+          setTimeout(() => {
+            delete db[key];
+          }, commands[10]);
       }
     });
   });
