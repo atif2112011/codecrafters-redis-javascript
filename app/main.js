@@ -21,7 +21,7 @@ const handleHandshake = (host, port) => {
 
     hsclient.on("data", (data) => {
       const commands = Buffer.from(data).toString().split("\r\n");
-
+      console.log(`Command recieved by replica:`, commands);
       if (commands[0] == "+PONG") {
         hsclient.write(
           `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${PORT}\r\n`
