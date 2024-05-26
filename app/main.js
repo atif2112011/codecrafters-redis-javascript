@@ -20,35 +20,50 @@ const handleHandshake = (host, port) => {
     let repl1 = false;
 
     hsclient.on("data", (data) => {
-      const commands = Buffer.from(data).toString().split("\r\n");
+      let commands = Buffer.from(data).toString().split("\r\n");
       console.log(`Command recieved by replica:`, commands);
-      if (commands[0] == "+PONG") {
-        hsclient.write(
-          `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${PORT}\r\n`
-        );
-      } else if (commands[0] == "+OK") {
-        if (repl1 == false) {
-          hsclient.write(
-            `*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n`
-          );
-          repl1 = true;
-        } else hsclient.write(`*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n`);
-      } else if (commands[2] == "SET") {
-        const key = commands[4];
-        const value = commands[6];
-        db[key] = value;
-
-        if (commands[8] == "px")
-          setTimeout(() => {
-            delete db[key];
-          }, commands[10]);
-      } else if (commands[2] == "GET") {
-        const answer = db[commands[4]];
-        if (answer) {
-          const l = answer.length;
-          connection.write("$" + l + "\r\n" + answer + "\r\n");
+      let queries = data.toString();
+      while (queries.length > 0) {
+        let index = queries.indexOf("*", 1);
+        let query;
+        if (index == -1) {
+          query = queries;
+          queries = "";
         } else {
-          connection.write("$-1\r\n");
+          query = queries.substring(0, index);
+          queries = queries.substring(index);
+        }
+
+        commands = Buffer.from(query).toString().split("\r\n");
+
+        if (commands[0] == "+PONG") {
+          hsclient.write(
+            `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${PORT}\r\n`
+          );
+        } else if (commands[0] == "+OK") {
+          if (repl1 == false) {
+            hsclient.write(
+              `*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n`
+            );
+            repl1 = true;
+          } else hsclient.write(`*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n`);
+        } else if (commands[2] == "SET") {
+          const key = commands[4];
+          const value = commands[6];
+          db[key] = value;
+
+          if (commands[8] == "px")
+            setTimeout(() => {
+              delete db[key];
+            }, commands[10]);
+        } else if (commands[2] == "GET") {
+          const answer = db[commands[4]];
+          if (answer) {
+            const l = answer.length;
+            connection.write("$" + l + "\r\n" + answer + "\r\n");
+          } else {
+            connection.write("$-1\r\n");
+          }
         }
       }
     });
