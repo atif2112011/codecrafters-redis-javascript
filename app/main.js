@@ -70,7 +70,9 @@ const handleHandshake = (host, port) => {
         } else if (commands[2] == "REPLCONF") {
           if (commands[4] == "GETACK") {
             hsclient.write(
-              `*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$${bytecount.toString.length}\r\n${bytecount}\r\n`
+              `*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$${
+                bytecount.toString().length
+              }\r\n${bytecount}\r\n`
             );
 
             bytecount += query.length;
