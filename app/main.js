@@ -54,7 +54,7 @@ const server = net.createServer((connection) => {
           `\r\n${key}:${server_info[key]}\r\n`;
       }
 
-      return connection.write(`*${server_info.length}\r\n` + response);
+      return connection.write(`*${server_info.size}\r\n` + response);
     }
 
     connection.write("+PONG\r\n");
