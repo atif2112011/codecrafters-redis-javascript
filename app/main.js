@@ -95,6 +95,12 @@ const server = net.createServer((connection) => {
       } else {
         return connection.write(`+OK\r\n`);
       }
+    } else if (commands[2] == "PSYNC") {
+      if (commands[4] == "?" && commands[6] == "-1") {
+        return connection.write(
+          `+FULLRESYNC ${server_info.master_replid} 0\r\n`
+        );
+      }
     }
   });
 });
