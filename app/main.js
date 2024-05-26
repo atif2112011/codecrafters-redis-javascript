@@ -36,6 +36,8 @@ const server = net.createServer((connection) => {
       } else {
         return connection.write("$-1\r\n");
       }
+    } else if (commands[2] == "INFO") {
+      return connection.write("$11\r\nrole:master\r\n");
     }
 
     connection.write("+PONG\r\n");
