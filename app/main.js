@@ -2,7 +2,7 @@ const net = require("net");
 const PORT = process.argv[2] === "--port" ? process.argv[3] : 6379;
 let mode = "master";
 
-if (process.argv[3] == "--replicaof") {
+if (process.argv[4] == "--replicaof") {
   mode = "slave";
 }
 const db = {};
