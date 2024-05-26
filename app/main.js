@@ -9,8 +9,12 @@ let server_info = {
 
 const handleHandshake = (host, port) => {
   const hsclient = net.createConnection({ host: host, port: port }, () => {
-    console.log("connected to master", "host", host, "port", port);
+    console.log("connected to master", "Host: ", host, "Port: ", port);
     hsclient.write("*1\r\n$4\r\nPING\r\n");
+    hsclient.write(
+      `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${port}\r\n`
+    );
+    hsclient.write(`*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n`);
   });
 };
 if (process.argv[4] == "--replicaof") {
