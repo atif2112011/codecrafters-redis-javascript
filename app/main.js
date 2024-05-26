@@ -48,14 +48,11 @@ const server = net.createServer((connection) => {
     } else if (commands[2] == "INFO") {
       let response = "";
       for (let key in server_info) {
-        response +=
-          `$` +
-          (key.length + server_info[key].length + 1) +
-          `\r\n${key}:${server_info[key]}\r\n`;
+        response += `${key}:${server_info[key]},`;
       }
       console.log(`Response`, response);
       return connection.write(
-        `*${Object.keys(server_info).length}\r\n` + response
+        `$` + `${response.length}\r\n` + response + `\r\n`
       );
     }
 
