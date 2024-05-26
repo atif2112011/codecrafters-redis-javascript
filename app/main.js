@@ -4,7 +4,7 @@ const PORT = process.argv[2] === "--port" ? process.argv[3] : 6379;
 let server_info = {
   role: "master",
   master_replid: "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb",
-  master_repl_offset: 0,
+  master_repl_offset: "0",
 };
 if (process.argv[4] == "--replicaof") {
   server_info.role = "slave";
