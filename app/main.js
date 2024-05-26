@@ -60,9 +60,15 @@ const handleHandshake = (host, port) => {
           const answer = db[commands[4]];
           if (answer) {
             const l = answer.length;
-            connection.write("$" + l + "\r\n" + answer + "\r\n");
+            hsclient.write("$" + l + "\r\n" + answer + "\r\n");
           } else {
-            connection.write("$-1\r\n");
+            hsclient.write("$-1\r\n");
+          }
+        } else if (commands[2] == "REPLCONF") {
+          if (commands[4] == "GETACK") {
+            return hsclient.write(
+              `*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$1\r\n0\r\n`
+            );
           }
         }
       }
