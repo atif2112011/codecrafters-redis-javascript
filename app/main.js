@@ -8,7 +8,7 @@ let server_info = {
 };
 
 const replicaList = [];
-
+let bytecount = 0;
 let empty_rdb =
   "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
 
@@ -40,6 +40,8 @@ const handleHandshake = (host, port) => {
           hsclient.write(
             `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${PORT}\r\n`
           );
+        } else if (commands[2] == "PING") {
+          bytecount += 14;
         } else if (commands[0] == "+OK") {
           if (repl1 == false) {
             hsclient.write(
@@ -48,6 +50,7 @@ const handleHandshake = (host, port) => {
             repl1 = true;
           } else hsclient.write(`*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n`);
         } else if (commands[2] == "SET") {
+          bytecount += query.length;
           const key = commands[4];
           const value = commands[6];
           db[key] = value;
@@ -66,9 +69,11 @@ const handleHandshake = (host, port) => {
           }
         } else if (commands[2] == "REPLCONF") {
           if (commands[4] == "GETACK") {
-            return hsclient.write(
-              `*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$1\r\n0\r\n`
+            hsclient.write(
+              `*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$${bytecount.toString.length}\r\n${bytecount}\r\n`
             );
+
+            bytecount += query.length;
           }
         }
       }
