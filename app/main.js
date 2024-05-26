@@ -22,7 +22,7 @@ const handleHandshake = (host, port) => {
           `*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n${PORT}\r\n`
         );
       } else if (commands[0] == "+OK") {
-        if ((repl1 = false)) {
+        if (repl1 == false) {
           hsclient.write(
             `*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n`
           );
