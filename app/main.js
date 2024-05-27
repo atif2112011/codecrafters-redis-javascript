@@ -93,6 +93,8 @@ const handleHandshake = (host, port) => {
             bytecount += query.length + 3;
             //+3 because when query is partitioned then if forms the query as "*3 replconf getack" instead of "*3 replconf getack *"
           }
+        } else if (commands[2] == "ACK") {
+          ack_received++;
         }
       }
     });
@@ -107,12 +109,12 @@ const propagateToReplicas = (command) => {
   }
   propogated_commands++;
 
-  for (const replica of replicaList) {
-    replica.once("data", (data) => {
-      const commands = Buffer.from(data).toString().split("\r\n");
-      if (commands[2] == "ACK") ack_received++;
-    });
-  }
+  //   for (const replica of replicaList) {
+  //     replica.once("data", (data) => {
+  //       const commands = Buffer.from(data).toString().split("\r\n");
+  //       if (commands[2] == "ACK") ack_received++;
+  //     });
+  //   }
 };
 
 const wait = (args, connection) => {
