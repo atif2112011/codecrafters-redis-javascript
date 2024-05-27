@@ -12,6 +12,8 @@ let bytecount = 0;
 let empty_rdb =
   "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
 
+const pendingWaitCommands = [];
+
 const handleHandshake = (host, port) => {
   const hsclient = net.createConnection({ host: host, port: port }, () => {
     console.log("connected to master", "Host: ", host, "Port: ", port);
@@ -60,6 +62,13 @@ const handleHandshake = (host, port) => {
             setTimeout(() => {
               delete db[key];
             }, commands[10]);
+
+          hsclient.write(
+            `*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$${
+              bytecount.toString().length
+            }\r\n${bytecount}\r\n`
+          );
+          bytecount += query.length + 3;
         } else if (commands[2] == "GET") {
           const answer = db[commands[4]];
           if (answer) {
@@ -91,7 +100,43 @@ const propagateToReplicas = (command) => {
   for (const replicaCon of replicaList) {
     replicaCon.write(command);
   }
+
+  const ackTracker = {
+    command,
+    replicasAcked: 0,
+  };
+
+  for (const replica of replicaList) {
+    replica.once("data", (data) => {
+      const commands = Buffer.from(data).toString().split("\r\n");
+      if (commands[2] == "ACK") {
+        ackTracker.replicasAcked++;
+        checkPendingWaitCommands();
+      }
+    });
+  }
 };
+
+const checkPendingWaitCommands = () => {
+  const now = Date.now();
+  for (let i = 0; i < pendingWaitCommands.length; i++) {
+    const waitCommand = pendingWaitCommands[i];
+    const elapsed = now - waitCommand.startTime;
+    const ackedReplicas = replicaList.filter(
+      (replica) => replica.replicasAcked
+    ).length;
+
+    if (
+      ackedReplicas >= waitCommand.numreplicas ||
+      elapsed >= waitCommand.timeout
+    ) {
+      waitCommand.connection.write(`:${ackedReplicas}\r\n`);
+      pendingWaitCommands.splice(i, 1);
+      i--;
+    }
+  }
+};
+
 if (process.argv[4] == "--replicaof") {
   server_info.role = "slave";
   let replicaofArray = process.argv[5].split(" ");
