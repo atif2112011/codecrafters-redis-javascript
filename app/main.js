@@ -134,7 +134,7 @@ const wait = (args, connection) => {
 
   // Set a timeout to send a reply if the required acknowledgments aren't received
   setTimeout(() => {
-    if (!reply_wait) connection.write(`:${ack_received}\r\n`);
+    if (!reply_wait) connection.write(`:${ack_needed}\r\n`);
   }, delay);
 };
 
