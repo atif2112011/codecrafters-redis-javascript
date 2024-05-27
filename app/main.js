@@ -105,6 +105,7 @@ const propagateToReplicas = (command) => {
   for (const replicaCon of replicaList) {
     replicaCon.write(command);
   }
+  propogated_commands++;
 
   for (const replica of replicaList) {
     replica.once("data", (data) => {
@@ -112,7 +113,6 @@ const propagateToReplicas = (command) => {
       if (commands[2] == "ACK") ack_received++;
     });
   }
-  propogated_commands++;
 };
 
 const wait = (args, connection) => {
@@ -129,12 +129,12 @@ const wait = (args, connection) => {
     connection.write(`:${replicaList.size}\r\n`);
   } else {
     // Request acknowledgment status from replicas
-    propagateToReplicas("*3\r\n$8\r\nreplconf\r\n$6\r\nGETACK\r\n$1\r\n*\r\n");
+    propagateToReplicas("*3\r\n$8\r\nREPLCONF\r\n$6\r\nGETACK\r\n$1\r\n*\r\n");
   }
 
   // Set a timeout to send a reply if the required acknowledgments aren't received
   setTimeout(() => {
-    if (!reply_wait) connection.write(`:${ack_needed}\r\n`);
+    if (!reply_wait) connection.write(`:${ack_received}\r\n`);
   }, delay);
 };
 
