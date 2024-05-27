@@ -106,7 +106,7 @@ const propagateToReplicas = (command) => {
 
   for (const replicaCon of replicaList) {
     replicaCon.write(command);
-    replica.on("data", (data) => {
+    replicaCon.on("data", (data) => {
       const commands = Buffer.from(data).toString().split("\r\n");
       if (commands[2] == "ACK") ack_received++;
     });
