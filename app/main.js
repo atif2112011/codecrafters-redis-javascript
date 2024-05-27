@@ -113,7 +113,7 @@ const propagateToReplicas = (command) => {
       const commands = Buffer.from(data).toString().split("\r\n");
       if (commands[2] == "ACK") {
         ackTracker.replicasAcked++;
-        checkPendingWaitCommands();
+        checkPendingWaitCommands(ackTracker);
       }
     });
   }
@@ -149,7 +149,9 @@ const checkPendingWaitCommands = (ackTracker) => {
       ackTracker.replicasAcked >= waitCommand.numreplicas ||
       elapsed >= waitCommand.timeout
     ) {
-      waitCommand.connection.write(`:${ackTracker.replicasAcked}\r\n`);
+      waitCommand.connection.write(
+        `:${ackTracker ? ackTracker.replicasAcked : 0}\r\n`
+      );
       pendingWaitCommands.splice(i, 1);
       i--;
     }
