@@ -104,64 +104,38 @@ const propagateToReplicas = (command) => {
 
   for (const replicaCon of replicaList) {
     replicaCon.write(command);
-    replicaCon.write("*3\r\n$8\r\nREPLCONF\r\n$6\r\nGETACK\r\n$1\r\n*\r\n");
   }
-
-  const ackTracker = {
-    command,
-    replicasAcked: 0,
-    totalReplicas: replicaList.length,
-  };
 
   for (const replica of replicaList) {
     replica.once("data", (data) => {
       const commands = Buffer.from(data).toString().split("\r\n");
-      if (commands[2] == "ACK") {
-        console.log(`ACK recieved`);
-        ackTracker.replicasAcked++;
-        checkPendingWaitCommands(ackTracker);
-      }
+      if (commands[2] == "ACK") ack_received++;
     });
   }
+  propogated_commands++;
 };
 
-// const checkPendingWaitCommands = () => {
-//   const now = Date.now();
-//   for (let i = 0; i < pendingWaitCommands.length; i++) {
-//     const waitCommand = pendingWaitCommands[i];
-//     const elapsed = now - waitCommand.startTime;
-//     const ackedReplicas = replicaList.filter(
-//       (replica) => replica.replicasAcked
-//     ).length;
+const wait = (args, connection) => {
+  // Parse arguments and reset acknowledgment tracking
+  const noOfReplica = parseInt(args[0]);
+  const delay = parseInt(args[1]);
+  ack_received = 0;
+  ack_needed = noOfReplica;
+  reply_wait = false;
 
-//     if (
-//       ackedReplicas >= waitCommand.numreplicas ||
-//       elapsed >= waitCommand.timeout
-//     ) {
-//       waitCommand.connection.write(`:${ackedReplicas}\r\n`);
-//       pendingWaitCommands.splice(i, 1);
-//       i--;
-//     }
-//   }
-// };
-const checkPendingWaitCommands = (ackTracker) => {
-  const now = Date.now();
-
-  for (let i = 0; i < pendingWaitCommands.length; i++) {
-    const waitCommand = pendingWaitCommands[i];
-    const elapsed = now - waitCommand.startTime;
-
-    if (
-      (ackTracker && ackTracker.replicasAcked >= waitCommand.numreplicas) ||
-      elapsed >= waitCommand.timeout
-    ) {
-      waitCommand.connection.write(
-        `:${ackTracker ? ackTracker.replicasAcked : 0}\r\n`
-      );
-      pendingWaitCommands.splice(i, 1);
-      i--;
-    }
+  // If no commands need propagation, reply immediately
+  if (propogated_commands === 0) {
+    reply_wait = true;
+    connection.write(`:${replicaList.size}`);
+  } else {
+    // Request acknowledgment status from replicas
+    propagateToReplica("*3\r\n$8\r\nreplconf\r\n$6\r\nGETACK\r\n$1\r\n*\r\n");
   }
+
+  // Set a timeout to send a reply if the required acknowledgments aren't received
+  setTimeout(() => {
+    if (!reply_wait) connection.write(`:${ack_received}`);
+  }, delay);
 };
 
 if (process.argv[4] == "--replicaof") {
@@ -244,19 +218,8 @@ const server = net.createServer((connection) => {
       }
     } else if (commands[2] == "WAIT") {
       //   return connection.write(`:${replicaList.length}\r\n`);
-      const numreplicas = parseInt(commands[4], 10);
-      const timeout = parseInt(commands[6], 10);
-      const startTime = Date.now();
-
-      const waitCommand = {
-        connection,
-        numreplicas,
-        timeout,
-        startTime,
-      };
-
-      pendingWaitCommands.push(waitCommand);
-      checkPendingWaitCommands();
+      let args = [commands[4], commands[6]];
+      wait(args, connection);
     }
   });
 });
