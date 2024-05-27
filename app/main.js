@@ -117,6 +117,7 @@ const propagateToReplicas = (command) => {
     replica.once("data", (data) => {
       const commands = Buffer.from(data).toString().split("\r\n");
       if (commands[2] == "ACK") {
+        console.log(`ACK recieved`);
         ackTracker.replicasAcked++;
         checkPendingWaitCommands(ackTracker);
       }
@@ -241,8 +242,6 @@ const server = net.createServer((connection) => {
         connection.write(res);
         replicaList.push(connection);
       }
-    } else if (commands[2] == "ACK") {
-      console.log(`ACK Recieved`);
     } else if (commands[2] == "WAIT") {
       //   return connection.write(`:${replicaList.length}\r\n`);
       const numreplicas = parseInt(commands[4], 10);
