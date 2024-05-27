@@ -99,7 +99,7 @@ const propagateToReplicas = (command) => {
 
   for (const replicaCon of replicaList) {
     replicaCon.write(command);
-    replicaCon.write("*3\r\n$8\r\nreplconf\r\n$6\r\ngetack\r\n$1\r\n*\r\n");
+    replicaCon.write("*3\r\n$8\r\nREPLCONF\r\n$6\r\nGETACK\r\n$1\r\n*\r\n");
   }
 
   const ackTracker = {
