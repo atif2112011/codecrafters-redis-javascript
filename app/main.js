@@ -149,9 +149,9 @@ const checkPendingWaitCommands = (ackTracker) => {
       ackTracker.replicasAcked >= waitCommand.numreplicas ||
       elapsed >= waitCommand.timeout
     ) {
-      //   waitCommand.connection.write(
-      //     `:${ackTracker ? ackTracker.replicasAcked : 0}\r\n`
-      //   );
+      waitCommand.connection.write(
+        `:${ackTracker ? ackTracker.replicasAcked : 0}\r\n`
+      );
       pendingWaitCommands.splice(i, 1);
       i--;
     }
