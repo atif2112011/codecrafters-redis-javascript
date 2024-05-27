@@ -108,7 +108,7 @@ const propagateToReplicas = (command) => {
     replicaCon.write(command);
     replicaCon.on("data", (data) => {
       const commands = Buffer.from(data).toString().split("\r\n");
-      if (commands[2] != "ACK") {
+      if (commands[4] == "ACK") {
         ack_received++;
         console.log(`ACK  Recieved`, commands);
       }
