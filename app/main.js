@@ -129,7 +129,7 @@ const wait = (args, connection) => {
     connection.write(`:${replicaList.size}`);
   } else {
     // Request acknowledgment status from replicas
-    propagateToReplica("*3\r\n$8\r\nreplconf\r\n$6\r\nGETACK\r\n$1\r\n*\r\n");
+    propagateToReplicas("*3\r\n$8\r\nreplconf\r\n$6\r\nGETACK\r\n$1\r\n*\r\n");
   }
 
   // Set a timeout to send a reply if the required acknowledgments aren't received
