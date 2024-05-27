@@ -180,7 +180,7 @@ const server = net.createServer((connection) => {
           delete db[key];
         }, commands[10]);
 
-      propagateToReplicas(commands);
+      propagateToReplicas(data);
       connection.write("+OK\r\n");
     } else if (commands[2] == "GET") {
       const answer = db[commands[4]];
