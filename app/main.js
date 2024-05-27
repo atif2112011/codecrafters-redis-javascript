@@ -93,8 +93,6 @@ const handleHandshake = (host, port) => {
             bytecount += query.length + 3;
             //+3 because when query is partitioned then if forms the query as "*3 replconf getack" instead of "*3 replconf getack *"
           }
-        } else if (commands[2] == "ACK") {
-          ack_received++;
         }
       }
     });
@@ -136,7 +134,10 @@ const wait = (args, connection) => {
 
   // Set a timeout to send a reply if the required acknowledgments aren't received
   setTimeout(() => {
-    if (!reply_wait) connection.write(`:${ack_received}\r\n`);
+    if (!reply_wait)
+      connection.write(
+        `:${ack_received > noOfReplica ? noOfReplica : ack_received}\r\n`
+      );
   }, delay);
 };
 
