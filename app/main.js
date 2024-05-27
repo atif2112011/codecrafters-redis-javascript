@@ -63,12 +63,12 @@ const handleHandshake = (host, port) => {
               delete db[key];
             }, commands[10]);
 
-          hsclient.write(
-            `*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$${
-              bytecount.toString().length
-            }\r\n${bytecount}\r\n`
-          );
-          bytecount += query.length + 3;
+          //   hsclient.write(
+          //     `*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$${
+          //       bytecount.toString().length
+          //     }\r\n${bytecount}\r\n`
+          //   );
+          //   bytecount += query.length + 3;
         } else if (commands[2] == "GET") {
           const answer = db[commands[4]];
           if (answer) {
@@ -99,6 +99,7 @@ const propagateToReplicas = (command) => {
 
   for (const replicaCon of replicaList) {
     replicaCon.write(command);
+    replicaCon.write("*3\r\n$8\r\nreplconf\r\n$6\r\ngetack\r\n$1\r\n*\r\n");
   }
 
   const ackTracker = {
