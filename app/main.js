@@ -146,7 +146,7 @@ const checkPendingWaitCommands = (ackTracker) => {
     const elapsed = now - waitCommand.startTime;
 
     if (
-      ackTracker.replicasAcked >= waitCommand.numreplicas ||
+      (ackTracker && ackTracker.replicasAcked >= waitCommand.numreplicas) ||
       elapsed >= waitCommand.timeout
     ) {
       waitCommand.connection.write(
