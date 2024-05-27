@@ -8,6 +8,11 @@ let server_info = {
 };
 
 const replicaList = [];
+let offset = 0;
+let ack_received = 0; // Total acks received by master from replica when getack is passed
+let ack_needed = 0; // Acks need to be received.
+let reply_wait = false;
+let propogated_commands = 0;
 let bytecount = 0;
 let empty_rdb =
   "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
@@ -236,6 +241,8 @@ const server = net.createServer((connection) => {
         connection.write(res);
         replicaList.push(connection);
       }
+    } else if (commands[2] == "ACK") {
+      console.log(`ACK Recieved`);
     } else if (commands[2] == "WAIT") {
       //   return connection.write(`:${replicaList.length}\r\n`);
       const numreplicas = parseInt(commands[4], 10);
