@@ -105,6 +105,7 @@ const propagateToReplicas = (command) => {
   const ackTracker = {
     command,
     replicasAcked: 0,
+    totalReplicas: replicaList.length,
   };
 
   for (const replica of replicaList) {
@@ -118,20 +119,37 @@ const propagateToReplicas = (command) => {
   }
 };
 
-const checkPendingWaitCommands = () => {
+// const checkPendingWaitCommands = () => {
+//   const now = Date.now();
+//   for (let i = 0; i < pendingWaitCommands.length; i++) {
+//     const waitCommand = pendingWaitCommands[i];
+//     const elapsed = now - waitCommand.startTime;
+//     const ackedReplicas = replicaList.filter(
+//       (replica) => replica.replicasAcked
+//     ).length;
+
+//     if (
+//       ackedReplicas >= waitCommand.numreplicas ||
+//       elapsed >= waitCommand.timeout
+//     ) {
+//       waitCommand.connection.write(`:${ackedReplicas}\r\n`);
+//       pendingWaitCommands.splice(i, 1);
+//       i--;
+//     }
+//   }
+// };
+const checkPendingWaitCommands = (ackTracker) => {
   const now = Date.now();
+
   for (let i = 0; i < pendingWaitCommands.length; i++) {
     const waitCommand = pendingWaitCommands[i];
     const elapsed = now - waitCommand.startTime;
-    const ackedReplicas = replicaList.filter(
-      (replica) => replica.replicasAcked
-    ).length;
 
     if (
-      ackedReplicas >= waitCommand.numreplicas ||
+      ackTracker.replicasAcked >= waitCommand.numreplicas ||
       elapsed >= waitCommand.timeout
     ) {
-      waitCommand.connection.write(`:${ackedReplicas}\r\n`);
+      waitCommand.connection.write(`:${ackTracker.replicasAcked}\r\n`);
       pendingWaitCommands.splice(i, 1);
       i--;
     }
