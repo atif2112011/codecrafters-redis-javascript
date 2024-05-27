@@ -216,7 +216,20 @@ const server = net.createServer((connection) => {
         replicaList.push(connection);
       }
     } else if (commands[2] == "WAIT") {
-      return connection.write(`:${replicaList.length}\r\n`);
+      //   return connection.write(`:${replicaList.length}\r\n`);
+      const numreplicas = parseInt(commands[4], 10);
+      const timeout = parseInt(commands[6], 10);
+      const startTime = Date.now();
+
+      const waitCommand = {
+        connection,
+        numreplicas,
+        timeout,
+        startTime,
+      };
+
+      pendingWaitCommands.push(waitCommand);
+      checkPendingWaitCommands();
     }
   });
 });
