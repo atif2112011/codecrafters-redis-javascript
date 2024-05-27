@@ -126,7 +126,7 @@ const wait = (args, connection) => {
   // If no commands need propagation, reply immediately
   if (propogated_commands === 0) {
     reply_wait = true;
-    connection.write(`:${replicaList.size}`);
+    connection.write(`:${replicaList.size}\r\n`);
   } else {
     // Request acknowledgment status from replicas
     propagateToReplicas("*3\r\n$8\r\nreplconf\r\n$6\r\nGETACK\r\n$1\r\n*\r\n");
@@ -134,7 +134,7 @@ const wait = (args, connection) => {
 
   // Set a timeout to send a reply if the required acknowledgments aren't received
   setTimeout(() => {
-    if (!reply_wait) connection.write(`:${ack_received}`);
+    if (!reply_wait) connection.write(`:${ack_received}\r\n`);
   }, delay);
 };
 
