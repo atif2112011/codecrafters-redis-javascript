@@ -1,6 +1,7 @@
 const net = require("net");
 const PORT = process.argv[2] === "--port" ? process.argv[3] : 6379;
 const fs = require("fs");
+const { connect } = require("http2");
 let server_info = {
   role: "master",
   master_replid: "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb",
@@ -101,6 +102,10 @@ const handleHandshake = (host, port) => {
           }
         }
       }
+    });
+
+    hsclient.on("error", (error) => {
+      console.log(`Error`, error);
     });
   });
 };
@@ -378,6 +383,10 @@ const server = net.createServer((connection) => {
       }
       connection.write(`*${keys.length}\r\n` + response);
     }
+  });
+
+  connection.on("error", (error) => {
+    console.log(`Error`, error);
   });
 });
 
