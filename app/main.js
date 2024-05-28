@@ -227,8 +227,8 @@ const server = net.createServer((connection) => {
       let args = [commands[4], commands[6]];
       wait(args, connection);
     } else if (commands[2] == "CONFIG") {
-      if (commands[3] == "GET") {
-        let command = commands[4];
+      if (commands[4] == "GET") {
+        let command = commands[6];
         let response;
         switch (response) {
           case "dir":
