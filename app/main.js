@@ -158,10 +158,10 @@ const readRdbFile = () => {
   const dirName = dir;
   const fileName = dbfilename;
   const filePath = dirName + "/" + fileName;
-  console.log(`DIr: ${dirName} ,Filenamde :${fileName}`);
-  console.log(`Path`, filePath);
+  //   console.log(`DIr: ${dirName} ,Filenamde :${fileName}`);
+  //   console.log(`Path`, filePath);
   const dataBuffer = fs.readFileSync(filePath);
-  console.log("Hex data:", dataBuffer.toString("hex"));
+  //   console.log("Hex data:", dataBuffer.toString("hex"));
 
   const getNextNBytes = (n) => {
     let nextNBytes = Buffer.alloc(n);
@@ -195,7 +195,7 @@ const readRdbFile = () => {
   };
 
   const resizeDb = () => {
-    console.log("Inside resizedb");
+    // console.log("Inside resizedb");
     i++;
     hashTable();
     expiryHashTable();
@@ -223,6 +223,9 @@ if (process.argv[4] == "--replicaof") {
   if (masterhost && masterport) {
     handleHandshake(masterhost, masterport);
   }
+}
+if (process.argv[2] == "--dir" && process.argv[4] == "--dbfilename") {
+  readRdbFile();
 }
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -311,7 +314,6 @@ const server = net.createServer((connection) => {
         return connection.write(response);
       }
     } else if (commands[2] == "KEYS") {
-      readRdbFile();
       const keys = Object.keys(db);
       let response = "";
       for (let key of keys) {
