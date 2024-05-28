@@ -21,7 +21,9 @@ let empty_rdb =
   "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
 
 const pendingWaitCommands = [];
+const db = {};
 
+//establishes a conenction with replica
 const handleHandshake = (host, port) => {
   const hsclient = net.createConnection({ host: host, port: port }, () => {
     console.log("connected to master", "Host: ", host, "Port: ", port);
@@ -102,6 +104,7 @@ const handleHandshake = (host, port) => {
   });
 };
 
+//Propagates write commands to replicas
 const propagateToReplicas = (command) => {
   if (server_info.role != "master" || replicaList.length == 0) return;
 
@@ -118,6 +121,7 @@ const propagateToReplicas = (command) => {
   propogated_commands++;
 };
 
+//Wait command implementation
 const wait = (args, connection) => {
   // Parse arguments and reset acknowledgment tracking
   const noOfReplica = parseInt(args[0]);
@@ -144,6 +148,70 @@ const wait = (args, connection) => {
   }, delay);
 };
 
+//Reads RDB File
+const readRdbFile = () => {
+  const opCodes = {
+    resizeDb: "fb",
+  };
+
+  let i = 0;
+  const dirName = dir;
+  const fileName = dbfilename;
+  const filePath = dirName + "/" + fileName;
+  const dataBuffer = fs.readFileSync(filePath);
+  console.log("Hex data:", dataBuffer.toString("hex"));
+
+  const getNextNBytes = (n) => {
+    let nextNBytes = Buffer.alloc(n);
+    for (let k = 0; k < n; k++) {
+      nextNBytes[k] = dataBuffer[i];
+      i++;
+    }
+    return nextNBytes;
+  };
+
+  const getNextObjLength = () => {
+    const firstByte = dataBuffer[i];
+    const twoBits = firstByte >> 6;
+    let length = 0;
+    switch (twoBits) {
+      case 0b00:
+        length = firstByte ^ 0b00000000;
+        i++;
+        break;
+    }
+    return length;
+  };
+
+  const hashTable = () => {
+    const nextObjLength = getNextObjLength();
+    const nextNBytes = getNextNBytes(nextObjLength);
+  };
+  const expiryHashTable = () => {
+    const nextObjLength = getNextObjLength();
+    const nextNBytes = getNextNBytes(nextObjLength);
+  };
+
+  const resizeDb = () => {
+    console.log("Inside resizedb");
+    i++;
+    hashTable();
+    expiryHashTable();
+    const keyLength = getNextObjLength();
+    const key = getNextNBytes(keyLength);
+    const valueLength = getNextObjLength();
+    const value = getNextNBytes(valueLength);
+    console.log("Key:", key.toString(), "value:", value.toString());
+    db[key] = value;
+  };
+
+  while (i < dataBuffer.length) {
+    const currentHexByte = dataBuffer[i].toString(16);
+    if (currentHexByte === opCodes.resizeDb) resizeDb();
+    i++;
+  }
+};
+
 if (process.argv[4] == "--replicaof") {
   server_info.role = "slave";
   let replicaofArray = process.argv[5].split(" ");
@@ -155,7 +223,6 @@ if (process.argv[4] == "--replicaof") {
   }
 }
 
-const db = {};
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
 
@@ -241,6 +308,14 @@ const server = net.createServer((connection) => {
 
         return connection.write(response);
       }
+    } else if (commands[2] == "KEYS") {
+      readRdbFile();
+      const keys = Object.keys(db);
+      let response = "";
+      for (let key of keys) {
+        response += `$${key.length}\r\n${key}\r\n`;
+      }
+      connection.write(`*${keys.length}\r\n` + response);
     }
   });
 });
