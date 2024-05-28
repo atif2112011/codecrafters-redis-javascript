@@ -158,10 +158,10 @@ const readRdbFile = () => {
   const dirName = dir;
   const fileName = dbfilename;
   const filePath = dirName + "/" + fileName;
-  //   console.log(`DIr: ${dirName} ,Filenamde :${fileName}`);
-  //   console.log(`Path`, filePath);
+  console.log(`DIr: ${dirName} ,Filenamde :${fileName}`);
+  console.log(`Path`, filePath);
   let dataBuffer;
-  //   console.log("Hex data:", dataBuffer.toString("hex"));
+  console.log("Hex data:", dataBuffer.toString("hex"));
   try {
     dataBuffer = fs.readFileSync(filePath);
   } catch (e) {
@@ -200,17 +200,33 @@ const readRdbFile = () => {
     const nextNBytes = getNextNBytes(nextObjLength);
   };
 
+  const getKeyValues = (n) => {
+    for (let j = 0; j < n; j++) {
+      const keyLength = getNextObjLength();
+      const key = getNextNBytes(keyLength).toString();
+      const valueLength = getNextObjLength();
+      const value = getNextNBytes(valueLength).toString();
+      console.log(`Setting ${key} to ${value}`);
+      db[key] = value;
+      i++; // 00 padding.
+    }
+  };
+
   const resizeDb = () => {
     // console.log("Inside resizedb");
     i++;
-    hashTable();
-    expiryHashTable();
-    const keyLength = getNextObjLength();
-    const key = getNextNBytes(keyLength);
-    const valueLength = getNextObjLength();
-    const value = getNextNBytes(valueLength);
-    console.log("Key:", key.toString(), "value:", value.toString());
-    db[key] = value;
+    // hashTable();
+    // expiryHashTable();
+    // const keyLength = getNextObjLength();
+    // const key = getNextNBytes(keyLength);
+    // const valueLength = getNextObjLength();
+    // const value = getNextNBytes(valueLength);
+    // console.log("Key:", key.toString(), "value:", value.toString());
+    // db[key] = value;
+    const totalKeyVal = getNextObjLength();
+    const totalExpiry = getNextObjLength();
+    i++; // There is 00 padding.
+    getKeyValues(totalKeyVal);
   };
 
   while (i < dataBuffer.length) {
