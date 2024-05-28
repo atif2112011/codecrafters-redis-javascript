@@ -22,6 +22,7 @@ let empty_rdb =
 
 const pendingWaitCommands = [];
 const db = {};
+const expiry = {};
 
 //establishes a conenction with replica
 const handleHandshake = (host, port) => {
@@ -152,6 +153,7 @@ const wait = (args, connection) => {
 const readRdbFile = () => {
   const opCodes = {
     resizeDb: "fb",
+    miliExp: "fc",
   };
 
   let i = 0;
@@ -168,6 +170,18 @@ const readRdbFile = () => {
     console.log("Error:", e);
     return;
   }
+
+  const getUnixTime = () => {
+    i++; // as i is pointing to "fc"
+    let timeStamp = getNextNBytes(8)
+      .toString("hex")
+      .split("")
+      .reverse()
+      .join(""); // Reversing timeStamp because it's in litle endian.
+    i++; // 00 Padding
+    timeStamp = "0x" + timeStamp; // Convert to hex string
+    return Number(timeStamp);
+  };
 
   const getNextNBytes = (n) => {
     let nextNBytes = Buffer.alloc(n);
@@ -191,24 +205,29 @@ const readRdbFile = () => {
     return length;
   };
 
-  const hashTable = () => {
-    const nextObjLength = getNextObjLength();
-    const nextNBytes = getNextNBytes(nextObjLength);
-  };
-  const expiryHashTable = () => {
-    const nextObjLength = getNextObjLength();
-    const nextNBytes = getNextNBytes(nextObjLength);
-  };
-
   const getKeyValues = (n) => {
+    let expirytime = "";
     for (let j = 0; j < n; j++) {
+      if (dataBuffer[i].toString(16) === opCodes.miliExp) {
+        i++;
+        expiryTime = dataBuffer.readBigUInt64LE(i);
+        i += 8;
+        console.log("expiryTime:", expiryTime);
+      }
+      // console.log("Current buf in hex:",dataBuffer[i].toString(16))
+      if (dataBuffer[i].toString(16) === "0") {
+        i++; // Skip 00 padding.
+      }
+
       const keyLength = getNextObjLength();
       const key = getNextNBytes(keyLength).toString();
       const valueLength = getNextObjLength();
       const value = getNextNBytes(valueLength).toString();
       console.log(`Setting ${key} to ${value}`);
       db[key] = value;
-      i++; // 00 padding.
+      if (expiryTime) {
+        expiry[key] = expiryTime;
+      }
     }
   };
 
@@ -225,7 +244,7 @@ const readRdbFile = () => {
     // db[key] = value;
     const totalKeyVal = getNextObjLength();
     const totalExpiry = getNextObjLength();
-    i++; // There is 00 padding.
+    if (totalExpiry === 0) i++; // There is 00 padding.
     getKeyValues(totalKeyVal);
   };
 
@@ -234,6 +253,20 @@ const readRdbFile = () => {
     if (currentHexByte === opCodes.resizeDb) resizeDb();
     i++;
   }
+};
+
+const hasExpired = (key) => {
+  if (key in expiry) {
+    const keyTimeStamp = expiry[key];
+    const currentDate = new Date();
+    const currentTimeStamp = Math.floor(currentDate.getTime());
+    if (keyTimeStamp <= currentTimeStamp) {
+      delete db[key];
+      delete expiry[key];
+      return true;
+    }
+  }
+  return false;
 };
 
 if (process.argv[4] == "--replicaof") {
@@ -280,8 +313,10 @@ const server = net.createServer((connection) => {
       propagateToReplicas(Buffer.from(data).toString());
       connection.write("+OK\r\n");
     } else if (commands[2] == "GET") {
-      const answer = db[commands[4]];
-      if (answer) {
+      let key = commands[4];
+      const answer = db[key];
+
+      if (answer && !hasExpired(key)) {
         const l = answer.length;
         return connection.write("$" + l + "\r\n" + answer + "\r\n");
       } else {
