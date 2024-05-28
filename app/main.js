@@ -161,9 +161,9 @@ const readRdbFile = () => {
   console.log(`DIr: ${dirName} ,Filenamde :${fileName}`);
   console.log(`Path`, filePath);
   let dataBuffer;
-  console.log("Hex data:", dataBuffer.toString("hex"));
   try {
     dataBuffer = fs.readFileSync(filePath);
+    console.log("Hex data:", dataBuffer.toString("hex"));
   } catch (e) {
     console.log("Error:", e);
     return;
