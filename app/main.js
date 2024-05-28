@@ -230,7 +230,7 @@ const server = net.createServer((connection) => {
       if (commands[4] == "GET") {
         let command = commands[6];
         let response;
-        switch (response) {
+        switch (command) {
           case "dir":
             response = `*2\r\n$3\r\ndir\r\n$${dir.length}\r\n${dir}\r\n`;
             break;
