@@ -8,7 +8,7 @@ let server_info = {
 };
 
 let dir = process.argv[2] === "--dir" ? process.argv[3] : "";
-let dbfilename = process.argv[2] === "--dbfilename" ? process.argv[3] : "";
+let dbfilename = process.argv[4] === "--dbfilename" ? process.argv[5] : "";
 
 const replicaList = [];
 let offset = 0;
