@@ -160,8 +160,14 @@ const readRdbFile = () => {
   const filePath = dirName + "/" + fileName;
   //   console.log(`DIr: ${dirName} ,Filenamde :${fileName}`);
   //   console.log(`Path`, filePath);
-  const dataBuffer = fs.readFileSync(filePath);
+  let dataBuffer;
   //   console.log("Hex data:", dataBuffer.toString("hex"));
+  try {
+    dataBuffer = fs.readFileSync(filePath);
+  } catch (e) {
+    console.log("Error:", e);
+    return;
+  }
 
   const getNextNBytes = (n) => {
     let nextNBytes = Buffer.alloc(n);
