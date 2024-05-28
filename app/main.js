@@ -7,6 +7,9 @@ let server_info = {
   master_repl_offset: "0",
 };
 
+let dir = process.argv[2] === "--dir" ? process.argv[3] : "";
+let dbfilename = process.argv[2] === "--dbfilename" ? process.argv[3] : "";
+
 const replicaList = [];
 let offset = 0;
 let ack_received = 0; // Total acks received by master from replica when getack is passed
@@ -223,6 +226,21 @@ const server = net.createServer((connection) => {
       //   return connection.write(`:${replicaList.length}\r\n`);
       let args = [commands[4], commands[6]];
       wait(args, connection);
+    } else if (commands[2] == "CONFIG") {
+      if (commands[3] == "GET") {
+        let command = commands[4];
+        let response;
+        switch (response) {
+          case "dir":
+            response = `*2\r\n$3\r\ndir\r\n$${dir.length}\r\n${dir}\r\n`;
+            break;
+          case "dbfilename":
+            response = `*2\r\n$3\r\ndbfilename\r\n$${dbfilename.length}\r\n${dbfilename}\r\n`;
+            break;
+        }
+
+        return connection.write(response);
+      }
     }
   });
 });
