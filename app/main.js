@@ -1,6 +1,6 @@
 const net = require("net");
 const PORT = process.argv[2] === "--port" ? process.argv[3] : 6379;
-
+const fs = require("fs");
 let server_info = {
   role: "master",
   master_replid: "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb",
