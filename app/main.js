@@ -158,6 +158,7 @@ const readRdbFile = () => {
   const dirName = dir;
   const fileName = dbfilename;
   const filePath = dirName + "/" + fileName;
+  console.log(`DIr: ${dirName} ,Filenamde :${fileName}`);
   console.log(`Path`, filePath);
   const dataBuffer = fs.readFileSync(filePath);
   console.log("Hex data:", dataBuffer.toString("hex"));
