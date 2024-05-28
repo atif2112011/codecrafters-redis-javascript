@@ -206,7 +206,7 @@ const readRdbFile = () => {
   };
 
   const getKeyValues = (n) => {
-    let expirytime = "";
+    let expiryTime = "";
     for (let j = 0; j < n; j++) {
       if (dataBuffer[i].toString(16) === opCodes.miliExp) {
         i++;
